@@ -1,6 +1,6 @@
-// Author: Benjamin Suire
-// Created: 22 Nov 2014
-// last edited:  28 Nov 2014
+// Author: Kwon Seok Hwan
+// Created: 11 July 2017 
+// last edited:  19 Nov 2017
 
 // TASKLIST
 
@@ -24,6 +24,63 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+
+//******************************* MY SQL **************************//
+var mysql = require("mysql");
+var connection = mysql.createConnection({
+    host : 'localhost',
+    port : 3306,
+    user : 'root',
+    password : 'seoil13',
+    database : 'messenger'
+});
+/*
+var mysql = require("mysql");
+var connection = mysql.createConnection({
+    host : 'cashmapdb.crfcwgheabzg.ap-northeast-2.rds.amazonaws.com',
+    port : 3306,
+    user : 'mrsa',
+    password : 'wlgP2015!',
+    database : 'cashmapdb'
+})
+*/
+
+
+
+connection.connect(function(err) {
+  if (err) {
+    console.error('error connecting: ' + err.stack);
+    return;
+  }
+  console.log("successfully connected");
+  console.log('connected as id ' + connection.threadId);
+});
+
+//var user_msg = ['사용자 ID','받는자 ID',getTimeStamp(),'내용1','파일명','실파일명'];
+//connection.query('insert into PT_USER_MSG values(?,?,?,?,?,?)', user_msg, function (error, result) {
+//     if(!error){ console.log(result); } 
+//  });
+//connection.query('create table local (area varchar(100) character set utf8, idx int) default charset = utf8',function(error, rows, fields){ if(error) throw error;	else{ console.log(rows); } });
+//var data = ['서울특별시 종로구',1]; 
+//connection.query('insert into local values(?,?)',data, function(error, result){ if(!error){ console.log(result); } });
+//connection.query('select area, idx from local', function(error, rows, fields){ if(error) throw error;	else{ console.log(rows); } });
+//var data = ['서울특별시 중구', 1]; connection.query('update local set area = ? where idx=?',data,function(error, rows){ if(error) throw error;	else{ console.log(rows); } });
+//connection.query('select area, idx from local', function(error, rows, fields){ if(error) throw error;	else{ console.log(rows); } });
+//var data = [1]; connection.query('delete from local where idx=?',data,function(error, rows){ if(error) throw error;	else{ console.log(rows); } });
+
+
+
+//*****************  MONGO DB *******************************// 
+//var mongoose = require('mongoose');
+//mongoose.connect('mongodb://localhost:27017/test'); // 기본 설정에 따라 포트가 상이 할 수 있습니다.
+//var db = mongoose.connection;
+//db.on('error', console.error.bind(console, 'connection error:'));
+//db.once('open', function callback () {
+//	console.log("mongo db connection OK.");
+//});
+
+
+
 var dir = {};           // directory of all User objects, using their respective usernames as keys.
 var online_users = [];  // list of all online users, identified by their usernames
 
@@ -44,14 +101,22 @@ http.listen(port, function () {
 });
 
 app.use(express.static(__dirname + '/public', {index: false}));
-
 // URL routing
 app.get('/', function(req, res){       
     res.status(200).sendFile(__dirname + '/index.html'); // chat UI 
 });
-
 app.get('/admin', function(req, res){               
     res.status(200).sendFile(__dirname + '/admin.html');   
+});
+app.get('/test',function(req,res){
+   res.status(200).sendFile(__dirname + '/test.html'); 
+});
+app.get('/dbtest',function(req,res){
+   res.status(200).sendFile(__dirname + '/dbtest.html'); 
+});
+app.get('*', function(req, res){               
+    res.status(404).sendFile(__dirname + '/404.html');
+    res.status(505).sendFile(__dirname + '/404.html');  
 });
 
 //  SOCKET.IO SERVER 
@@ -105,10 +170,11 @@ io.sockets.on('connection', function(socket){
             // update lobby (online users list displayed in UI)  
             var newest_users = getMostRecentUsers();
             var total_users = online_users.length;
-            socket.emit('update lobby', newest_users,total_users);
-
+            io.sockets.emit('update lobby', newest_users,total_users);
+            //socket.broadcast.emit('update lobby', online_users ,total_users);
+            
             // notify everyone else
-            socket.broadcast.emit('message',{'from':'SERVER','content':''+ username +' just signed in'});
+            socket.broadcast.emit('message',{'from':'SERVER','content':''+ username +'님께서 접속하셨습니다.'});
         } 
     });
     
@@ -162,7 +228,7 @@ io.sockets.on('connection', function(socket){
         // Prepare notification message from server
         var msg = {};
         msg['from'] = 'SERVER';
-
+        
         // there are 3 cases when no chat is setup
         // --> a. invited turned down request
         // --> b. inviter left
@@ -182,6 +248,7 @@ io.sockets.on('connection', function(socket){
             // --> notify invited
             msg['content'] = invite['to'] + ' has gone offline.';
             dir[invited].socket.emit('message', msg);
+            
         }
 
         else if ( rsvp['type'] === 'current' && dir[inviter].peers.length === MAX_PEERS ) {
@@ -211,6 +278,17 @@ io.sockets.on('connection', function(socket){
             }  
             
             console.log('Chat room updated!  '+ inviter + ',' +  dir[inviter].peers + ' are now chatting together!');
+            
+            ///////////////////////////////////////////////////////// 2017.07.19 /////////////////////////////////////////////////////////////////////
+            connection.query("SELECT  A.USER_ID, A.REC_ID, A.REG_DT, A.MSG_DESC FROM PT_USER_MSG A LEFT JOIN PT_USER B ON A.USER_ID = B.USER_ID LEFT JOIN PT_USER C ON A.REC_ID = C.USER_ID WHERE ((A.REC_ID = \'" + dir[inviter].peers + "\' AND A.USER_ID = \'"+ inviter +"\') OR (A.REC_ID = \'" + inviter + "\' AND A.USER_ID = \'"+ dir[inviter].peers +"\')) ORDER BY A.REG_DT", function(err, rows) {
+        
+            if(err) throw err;
+            rsvp['message'] = rows;
+            dir[inviter].socket.emit('rsvp',rsvp);
+            socket.emit('dbmessage',rsvp);
+            console.log('The solution is: ', rows);
+            });
+            ///////////////////////////////////////////////////////// 2017.07.19 /////////////////////////////////////////////////////////////////////
         }
     });
     
@@ -229,7 +307,15 @@ io.sockets.on('connection', function(socket){
             dir[to[i]].socket.emit('message', msg);
         }
         console.log(user.username + ' to:' + to);
-        //console.log('message: ' + msg);
+        console.log('message: ' + msg['content'] + '\n' + getTimeStamp() + '\n');
+        
+        
+        msg['content'] = msg['content'].replace(/\n/g,''); //개행 제거
+
+        var user_msg = [msg['from'], to ,getTimeStamp(),msg['content'],null,'text'];
+        connection.query('insert into PT_USER_MSG values(?,?,?,?,?,?)', user_msg, function (error, result) {if(error){ console.log(error); }});
+       
+
     });
     
    
@@ -242,6 +328,9 @@ io.sockets.on('connection', function(socket){
             dir[to[i]].socket.emit('file', dataURI,type, user.username);
         }
         console.log(user.username + ' is sharing a file');
+        
+         var user_msg = [user.username, to ,getTimeStamp(), null, dataURI.toString, type];
+        connection.query('insert into PT_USER_MSG values(?,?,?,?,?,?)', user_msg, function (error, result) {if(error){ console.log(error); }});
     });
 
     
@@ -327,7 +416,7 @@ function User(username,peers,ip,port,socket){
 function getMostRecentUsers(){
         var newest_users = [];
           
-        for (var i= online_users.length - 2; i >= 0 && i > online_users.length -12; i--){
+        for (var i= online_users.length - 1; i >= 0 && i > online_users.length -12; i--){
             newest_users.push(online_users[i]); 
         }
         return newest_users;
@@ -431,4 +520,31 @@ function setupGroupChat(user1,user2){ // user1 = inviter, user2 = invited
     // 3. finally, pair user1 and user2
     dir[user2].peers.push(user1);
     dir[user1].peers.push(user2);
+}
+
+function getTimeStamp() {
+  var d = new Date();
+
+  var s =
+    leadingZeros(d.getFullYear(), 4) + '-' +
+    leadingZeros(d.getMonth() + 1, 2) + '-' +
+    leadingZeros(d.getDate(), 2) + ' ' +
+
+    leadingZeros(d.getHours(), 2) + ':' +
+    leadingZeros(d.getMinutes(), 2) + ':' +
+    leadingZeros(d.getSeconds(), 2);
+
+  return s;
+}
+
+function leadingZeros(n, digits) {
+  var zero = '';
+  var i;
+  n = n.toString();
+
+  if (n.length < digits) {
+    for (i = 0; i < digits - n.length; i++)
+      zero += '0';
+  }
+  return zero + n;
 }

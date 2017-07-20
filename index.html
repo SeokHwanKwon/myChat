@@ -1,47 +1,122 @@
 <!doctype html>
 <html>
 <head>
-    <title>streamChat!</title>
+    <meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width" /-->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=0, user-scalable=no, target-densitydpi=medium-dpi" /><!--모바일페이지크기조절메타태그--> 
+    <title>[Kwon Seok Hwan]Chat App</title>
     <link href="/style.css" rel="stylesheet" type="text/css">
 </head >
-<body>
+<body class="chat_bg">
+    
+    <div id="container">
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+ 
+    <div id="wrap">
+        
+          <!--The Layer that will be layed over the content
+    so that the content is unclickable while menu is shown-->
+    <div id="contentLayer"></div>
+    
+    <div id="content" class="full" >
+    
     <div id="room">
-        <div id="chat"> 
-            <ul id="messages"></ul>
-        </div>
+        <div id="messages" class="chat_view" ></div>
+        
+         <div class="msg_bx">
+                 
+                <div class="txt_bx">
+                    <form id="upload" action="">
+                        	<label class="file" id='fileselect' for = "sendMedia">
+                        <input id="sendMedia" type="file" style="display:none;">
+                    </label>
+  
+                    </form>
         <div id="chatform"> 
-            <form id="sendmessage" action="">
-                <input id="m" autocomplete="off" /><button>Send</button>
-            </form>
+                   <textarea id="m" autocomplete="off" placeholder="메세지를 입력해주세요."></textarea><input type="button" class="submit active" id="sendmessage" value="send"/>
         </div>
+        </div>
+            <script type="text/javascript">
+			$(window).ready(function(e){
+				$("#txt").on('input', function () {
+					var h = $(this).prop('scrollHeight')
+					if(h >= 25 && h < 60){
+				  		$(this).height(1).height( $(this).prop('scrollHeight') );
+					}else if(h > 62){
+				  		$(this).css('overflow','height');
+					}
+				});
+			})
+			</script>
+        </div>
+        
     </div>
-    <div id = "lobby">
-        <div id = "lobbyheader">
-            <h3> Who's Online? </h3>
-            <p id="tally"></p>
+    
+        <div id="header" class="st2">
+            <h1 class="tal"><div id="userTitle"></div></h1>
+            <a href="#n" class="prev"><span class="blind">이전페이지</span></a>
+			<a href="#n" class="more openMenu"><span class="blind">더보기</span></a>
+            <div id="lnb" class="_nav">
+				<div class="inner">
+					<div class="top">
+						<p class="name" id="myName"></p>
+						<p class="biz">(주)코코아</p>
+						<a href="#n" class="closeMenu">닫기</a>
+					</div>
+					<div class="sub_list">
+					
+					<div id = "lobby">
+						<div id = "lobbyheader">	
+						<p class="tit"><h3> Who's Online? </h3></p>
+						<p> </p><div id="tally"></div></p>
+						</div>
+					</div>
+					
+						<ul class="list">
+							<!--form id="searchfriend" action="">
+            				    <input id="search" type="text" placeholder="type in friend's username" />
+          					</form--> 
+							<li id="users"></li>
+							<div id = "dragboxes">
+							<li><a href="#n">
+								<div id="currentchatbox" ondrop="drop(event,'current')" ondragover="allowDrop(event)">
+       	       				 	<p> Add to <b>Current</b> Chat </p>
+      		   					</div>
+							</a></li>
+							
+							<li><a href="#n">
+								<div id="newchatbox" ondrop="drop(event,'new')" ondragover="allowDrop(event)">
+    			        	    <p> Start a <b>New</b> Chat </p>
+        	    				</div>
+							</a></li>
+							</div>
+							<li><a href="#n">
+								<div id = "lobbyfooter">
+        						<p> Drag and drop a user onto one of the above two boxes</p>
+     	  						</div>
+							</a></li>
+						
+						</ul>
+					</div>
+						
+						<p class="tel">1644-5154</p>
+						<!-- 최신버전일때 : latest 클래스 추가 / 아닐때 latest 클래스 제거-->
+						<p class="tit version">버전정보<span class="vs"><em class="latest">최신버전</em> v1.2.1</span></p>
+					</div>
+				</div>
+			</div>
+			<div class="dim"></div>
         </div>
-            <form id="searchfriend" action="">
-                <input id="search" type="text" placeholder="type in friend's username" />
-            </form>
-            <ul id="users"></ul>
-        <div id = "dragboxes">
-            <div id="currentchatbox" ondrop="drop(event,'current')" ondragover="allowDrop(event)">
-                <p> Add to <b>Current</b> Chat </p>
-            </div>
-            <div id="newchatbox" ondrop="drop(event,'new')" ondragover="allowDrop(event)">
-                <p> Start a <b>New</b> Chat </p>
-            </div>
-        </div>
-        <div id = "lobbyfooter">
-            <p> Drag and drop a user onto one of the above two boxes</p>
-        </div>
-        <h3> Share Image/Video </h3> 
-        <form id="upload" action="">
-            <input id="fileselect" type="file" name="fileselect" /><button>Share!</button>
-        </form>
+        
+    </div>
+    </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/jquery-2.1.1.min.js"></script>
     <script src="/scripts.js"></script> 
+    <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
 </body>
 </html>

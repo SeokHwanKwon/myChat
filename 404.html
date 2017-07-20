@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <script type="text/javascript">
+            var totalCount = 8;
+    function ChangeIt()
+    {
+        var num = Math.ceil( Math.random() * totalCount );
+        
+     //   window.document.body.style.cssText = 'BACKGROUND-POSITION: right bottom; BACKGROUND-ATTACHMENT: fixed; BACKGROUND-IMAGE: url(http://media.disquscdn.com/errors/img/'+num+'.gif); BACKGROUND-REPEAT: no-repeat';
+
+
+     document.body.background = '//media.disquscdn.com/errors/img/'+num+'.gif';
+    document.body.style.backgroundRepeat = "repeat";// Background repeat
+    }
+    window.onload = ChangeIt;
+            
+        </script>
+       
+    </head>
+    
+    <body style="background-size: 100%">
+
+        <span style="color:white"> <h1>페이지를 찾을 수 없어요 ㅠㅠ</h1>
+        </span>
+       
+    </body>
+</html>

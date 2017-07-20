@@ -3,12 +3,29 @@
   "version": "0.0.1",
   "description": "streamRoot coding challenge",
   "main": "app.js",
-      "scripts":{
-          "start": "node app.js"
-      },
+  "scripts": {
+    "start": "node app.js"
+  },
   "author": "Benjamin Suire",
   "dependencies": {
-    "express": "^4.10.2",
+    "body-parser": "1.17.2",
+    "express": "4.15.3",
+    "iconv": "^2.3.0",
+    "mariasql": "^0.2.6",
+    "mongodb": "^2.2.30",
+    "mongoose": "4.11.2",
+    "mysql": "^2.13.0",
     "socket.io": "^1.2.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bsuire/streamChat.git"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bsuire/streamChat/issues"
+  },
+  "homepage": "https://github.com/bsuire/streamChat#readme"
 }
