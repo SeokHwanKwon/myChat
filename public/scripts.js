@@ -114,7 +114,7 @@ socket.on('update lobby', function(users_list,total_users){
     }
     // refresh the number of users signed in
     $('#tally').empty();
-    $('#tally').append(total_users +' users online');  
+    $('#tally').append(total_users +'명 접속중');  
 });
 
 
@@ -174,8 +174,6 @@ socket.on('invite', function(invite){ // e.g.: invite = {'to':'Nikolay','from':'
         $('#userTitle').empty();
 	    $('#userTitle').append(invite['from']);
     
-    
-    	
     } 
     else 
     {
@@ -185,43 +183,34 @@ socket.on('invite', function(invite){ // e.g.: invite = {'to':'Nikolay','from':'
     // ('rsvp' socket event, rsvp associative array, and rsvp.rsvp = true/false. RSVPs everywhere...) 
 });
 
-socket.on('dbmessage',function(rsvp){
-		$('#messages').empty();
-		for(var i in rsvp['message']){
-			if(rsvp['message'][i].USER_ID == my_username){
-				 $('#messages').append('<div class="spc spc1"> <div class="bx pic">'+rsvp['message'][i].MSG_DESC+'</div><div class="time">'+ rsvp['message'][i].REG_DT+'</div></div>' );
-			}else {
-				$('#messages').append('<div class="spc spc2"> <div class="name">'+rsvp['message'][i].USER_ID + '</div> <div class="bx">' + rsvp['message'][i].MSG_DESC + '</div><div class="time">'+rsvp['message'][i].REG_DT+'</div></div>');
-			}
-		}
-		scrollDown();
-});
-
 //  F   RECEIPT OF RSVP
 socket.on('rsvp', function(rsvp){
     
     if (rsvp['rsvp'] === true){
   
-        alert('\"'+ rsvp['from'] +'\"님께서 당신의 초대에 승낙하셨습니다. ^^');
+        //alert('\"'+ rsvp['from'] +'\"님께서 당신의 초대에 승낙하셨습니다. ^^');
         /// add
        $('#userTitle').empty();
-		$('#userTitle').append(rsvp['from']);
-		
-		
-		
-		$('#messages').empty();
+       $('#messages').empty();
+       
+       if(my_username != rsvp['from'])
+       $('#userTitle').append(rsvp['from']);
+       else $('#userTitle').append(rsvp['to']);
 		for(var i in rsvp['message']){
 			if(rsvp['message'][i].USER_ID == my_username){
-				 $('#messages').append('<div class="spc spc1"> <div class="bx pic">'+rsvp['message'][i].MSG_DESC+'</div><div class="time">'+ rsvp['message'][i].REG_DT+'</div></div>' );
+				 $('#messages').append('<div class="spc spc1"> <div class="bx pic">'+rsvp['message'][i].MSG_DESC+'</div><div class="time">'+ rsvp['message'][i].REG_TM+'</div></div>' );
 			}else {
-				$('#messages').append('<div class="spc spc2"> <div class="name">'+rsvp['message'][i].USER_ID + '</div> <div class="bx">' + rsvp['message'][i].MSG_DESC + '</div><div class="time">'+rsvp['message'][i].REG_DT+'</div></div>');
+				$('#messages').append('<div class="spc spc2"> <div class="name">'+rsvp['message'][i].USER_ID + '</div> <div class="bx">' + rsvp['message'][i].MSG_DESC + '</div><div class="time">'+rsvp['message'][i].REG_TM+'</div></div>');
 			}
 		}
+  
     } 
     else 
     {
         alert('\"'+ rsvp['from'] + '\"님께서 당신의 초대에 거절하셨습니다 ㅜㅜ');
+       
     } 
+    	
 });    
 
 

@@ -26,6 +26,7 @@ var io = require('socket.io')(http);
 
 
 //******************************* MY SQL **************************//
+
 var mysql = require("mysql");
 var connection = mysql.createConnection({
     host : 'localhost',
@@ -37,11 +38,11 @@ var connection = mysql.createConnection({
 /*
 var mysql = require("mysql");
 var connection = mysql.createConnection({
-    host : 'cashmapdb.crfcwgheabzg.ap-northeast-2.rds.amazonaws.com',
+    host : 'jdbc:mysql://cashmapdb.crfcwgheabzg.ap-northeast-2.rds.amazonaws.com:3306/cashmapDb?autoReconnect=true',
     port : 3306,
     user : 'mrsa',
-    password : 'wlgP2015!',
-    database : 'cashmapdb'
+    password : 'wlgP2015+',
+    database : 'jdbc/cashmapddb'
 })
 */
 
@@ -241,13 +242,18 @@ io.sockets.on('connection', function(socket){
             if ( online_users.indexOf(inviter) !== -1 ) {
                 dir[inviter].socket.emit('rsvp', rsvp);
             }
+            msg['content'] = ' D';
+            
+            dir[inviter].socket.emit('message', msg);
+            
         }
         else if ( online_users.indexOf(inviter) === -1 ) {  
             
             // b. invited accepted chat invite but in the meantime inviter went offline (expired invite)
             // --> notify invited
-            msg['content'] = invite['to'] + ' has gone offline.';
+            msg['content'] = inviter['to'] + ' has gone offline.';
             dir[invited].socket.emit('message', msg);
+            dir[inviter].socket.emit('message', msg);
             
         }
 
@@ -280,13 +286,13 @@ io.sockets.on('connection', function(socket){
             console.log('Chat room updated!  '+ inviter + ',' +  dir[inviter].peers + ' are now chatting together!');
             
             ///////////////////////////////////////////////////////// 2017.07.19 /////////////////////////////////////////////////////////////////////
-            connection.query("SELECT  A.USER_ID, A.REC_ID, A.REG_DT, A.MSG_DESC FROM PT_USER_MSG A LEFT JOIN PT_USER B ON A.USER_ID = B.USER_ID LEFT JOIN PT_USER C ON A.REC_ID = C.USER_ID WHERE ((A.REC_ID = \'" + dir[inviter].peers + "\' AND A.USER_ID = \'"+ inviter +"\') OR (A.REC_ID = \'" + inviter + "\' AND A.USER_ID = \'"+ dir[inviter].peers +"\')) ORDER BY A.REG_DT", function(err, rows) {
+            connection.query("SELECT  A.USER_ID, A.REC_ID, A.REG_DT, TIME_FORMAT(A.REG_DT,'%H:%i') AS REG_TM, A.MSG_DESC FROM PT_USER_MSG A LEFT JOIN PT_USER B ON A.USER_ID = B.USER_ID LEFT JOIN PT_USER C ON A.REC_ID = C.USER_ID WHERE ((A.REC_ID = \'" + dir[inviter].peers + "\' AND A.USER_ID = \'"+ inviter +"\') OR (A.REC_ID = \'" + inviter + "\' AND A.USER_ID = \'"+ dir[inviter].peers +"\')) ORDER BY A.REG_DT", function(err, rows) {
         
             if(err) throw err;
             rsvp['message'] = rows;
             dir[inviter].socket.emit('rsvp',rsvp);
-            socket.emit('dbmessage',rsvp);
-            console.log('The solution is: ', rows);
+            dir[invited].socket.emit('rsvp',rsvp);
+            //console.log('The solution is: ', rows);
             });
             ///////////////////////////////////////////////////////// 2017.07.19 /////////////////////////////////////////////////////////////////////
         }
@@ -304,6 +310,7 @@ io.sockets.on('connection', function(socket){
         var to = user.peers;
         
         for(var i=0; i < to.length; i++){
+            
             dir[to[i]].socket.emit('message', msg);
         }
         console.log(user.username + ' to:' + to);
@@ -312,8 +319,8 @@ io.sockets.on('connection', function(socket){
         
         msg['content'] = msg['content'].replace(/\n/g,''); //개행 제거
 
-        var user_msg = [msg['from'], to ,getTimeStamp(),msg['content'],null,'text'];
-        connection.query('insert into PT_USER_MSG values(?,?,?,?,?,?)', user_msg, function (error, result) {if(error){ console.log(error); }});
+        var user_msg = [msg['from'], to ,getTimeStamp(),msg['content'],null ,null,'text',1];
+        connection.query('insert into PT_USER_MSG values(?,?,?,?,?,?,?,?)', user_msg, function (error, result) {if(error){ console.log(error); }});
        
 
     });
@@ -329,8 +336,8 @@ io.sockets.on('connection', function(socket){
         }
         console.log(user.username + ' is sharing a file');
         
-         var user_msg = [user.username, to ,getTimeStamp(), null, dataURI.toString, type];
-        connection.query('insert into PT_USER_MSG values(?,?,?,?,?,?)', user_msg, function (error, result) {if(error){ console.log(error); }});
+         var user_msg = [user.username, to ,getTimeStamp(), null , null, dataURI.toString, type,1];
+        connection.query('insert into PT_USER_MSG values(?,?,?,?,?,?,?,?)', user_msg, function (error, result) {if(error){ console.log(error); }});
     });
 
     
