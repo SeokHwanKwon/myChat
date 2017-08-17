@@ -35,16 +35,6 @@ var connection = mysql.createConnection({
     password : 'seoil13',
     database : 'messenger'
 });
-/*
-var mysql = require("mysql");
-var connection = mysql.createConnection({
-    host : 'jdbc:mysql://cashmapdb.crfcwgheabzg.ap-northeast-2.rds.amazonaws.com:3306/cashmapDb?autoReconnect=true',
-    port : 3306,
-    user : 'mrsa',
-    password : 'wlgP2015+',
-    database : 'jdbc/cashmapddb'
-})
-*/
 
 
 
